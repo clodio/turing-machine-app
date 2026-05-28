@@ -1,4 +1,4 @@
-﻿export const CHECK_CARD_ID_TO_NAME: Record<number, string> = {
+export const CHECK_CARD_ID_TO_NAME: Record<number, string> = {
   201: "purple_eq_4",
   202: "yellow_lt_purple",
   204: "purple_eq_4",
