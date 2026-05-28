@@ -1,7 +1,6 @@
 import ContentIcon from "@mui/icons-material/ContentPasteRounded";
 import SearchIcon from "@mui/icons-material/ContentPasteSearchRounded";
 import DarkModeIcon from "@mui/icons-material/DarkModeRounded";
-import GitHubIcon from "@mui/icons-material/GitHub";
 import LightModeIcon from "@mui/icons-material/LightModeRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
 import CheckIcon from "@mui/icons-material/RuleFolderRounded";
