@@ -1,8 +1,8 @@
 {
-  "name": "turing-machine-interactive-sheet",
+  "name": "turing-machine-app",
   "version": "0.25.0",
   "private": true,
-  "homepage": "https://clood.github.io/turing-machine-board-game",
+  "homepage": "https://clodio.github.io/turing-machine-app",
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
