@@ -1,4 +1,4 @@
-import { CHECK_CARDS } from "parsing/util";
+import { CHECK_CARD_ID_TO_NAME } from "./checkCardIdToName";
 
 type CodeTriple = [number, number, number];
 type CheckCardEvaluator = (code: CodeTriple) => boolean;
@@ -246,13 +246,12 @@ const checkCardEvaluators: CheckCardEvaluator[] = [
 ];
 
 function resolveCheckCardIndex(checkCardId: number): number | null {
-  for (const colorGroup of CHECK_CARDS) {
-    const index = colorGroup.indexOf(checkCardId);
-    if (index !== -1) {
-      return index;
-    }
+  const checkCardName = CHECK_CARD_ID_TO_NAME[checkCardId];
+  if (!checkCardName) {
+    return null;
   }
-  return null;
+  const index = checkCardNames.indexOf(checkCardName as (typeof checkCardNames)[number]);
+  return index === -1 ? null : index;
 }
 
 export function getCheckCardName(checkCardId: number): string | null {
