@@ -33,6 +33,10 @@ const Round: FC<Props> = ({ round, index }) => {
     codeDigits.length === 3 &&
     codeDigits.every((d) => d !== null && d >= 1 && d <= 5);
 
+  const verifiedLettersCount = round.queries.filter(
+    (q) => q.state !== "unknown"
+  ).length;
+
   return (
     <Box>
       <Grid container spacing={0.5}>
@@ -113,6 +117,18 @@ const Round: FC<Props> = ({ round, index }) => {
                         level: "info",
                         message:
                           "Veuillez saisir les 3 chiffres de cette manche pour pouvoir vérifier une lettre.",
+                      })
+                    );
+                    return;
+                  }
+
+                  // (2) Already verified 3 letters => cannot verify another
+                  if (verifiedLettersCount >= 3 && query.state === "unknown") {
+                    dispatch(
+                      alertActions.openAlert({
+                        level: "info",
+                        message:
+                          "Veuillez démarrer une nouvelle manche.",
                       })
                     );
                     return;
