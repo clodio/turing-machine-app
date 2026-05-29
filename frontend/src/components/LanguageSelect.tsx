@@ -61,7 +61,7 @@ const LanguageSelect: FC<Props> = (props) => {
         <CircleFlag countryCode={selected?.value.code || "uk"} height={24} />
       )}
       onChange={(_, value) => {
-        props.onChange && props.onChange((value && value.tm) || "EN");
+        props.onChange && props.onChange((value && value.tm) || "FR");
       }}
     >
       {availableCountries.map((country: Language) => (
