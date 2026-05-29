@@ -12,7 +12,7 @@ import { useAppSelector } from "hooks/useAppSelector";
 import { manualCodeListActions } from "store/slices/manualCodeListSlice";
 import type { CodeStateValue } from "store/slices/manualCodeListSlice";
 
-// Les 125 codes (111 à 555), groupés par premier chiffre
+// Les 125 codes (111 a 555), groupes par premier chiffre
 function buildAllCodes(): { [key: number]: string[] } {
   const result: { [key: number]: string[] } = {
     1: [],
@@ -41,6 +41,7 @@ export function ManualCodeList() {
   const [expanded, setExpanded] = useState(false);
   const [hide, setHide] = useState(false);
   const isDraggingRef = useRef(false);
+  const activePointerIdRef = useRef<number | null>(null);
   const touchedCodesRef = useRef<Set<string>>(new Set());
 
   function getState(code: string): CodeStateValue {
@@ -53,6 +54,7 @@ export function ManualCodeList() {
 
   function resetDragState() {
     isDraggingRef.current = false;
+    activePointerIdRef.current = null;
     touchedCodesRef.current.clear();
   }
 
@@ -64,8 +66,11 @@ export function ManualCodeList() {
     handleClick(code);
   }
 
-  function handlePointerDown(code: string) {
+  function handlePointerDown(code: string, event: React.PointerEvent) {
+    // Sur mobile, evite le scroll pendant le drag sur les codes.
+    event.preventDefault();
     isDraggingRef.current = true;
+    activePointerIdRef.current = event.pointerId;
     touchedCodesRef.current.clear();
     applyDragToggle(code);
   }
@@ -85,15 +90,46 @@ export function ManualCodeList() {
     setHide((v) => !v);
   }
 
+  // Uses refs-only drag state; listeners are intentionally attached once.
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
+    const handleGlobalPointerMove = (event: PointerEvent) => {
+      if (!isDraggingRef.current) {
+        return;
+      }
+      if (
+        activePointerIdRef.current !== null &&
+        event.pointerId !== activePointerIdRef.current
+      ) {
+        return;
+      }
+
+      const target = document.elementFromPoint(event.clientX, event.clientY);
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      const codeElement = target.closest("[data-code-item='true']");
+      const code = codeElement?.getAttribute("data-code");
+      if (!code) {
+        return;
+      }
+      applyDragToggle(code);
+    };
+
+    window.addEventListener("pointermove", handleGlobalPointerMove, {
+      passive: false,
+    });
     window.addEventListener("pointerup", resetDragState);
     window.addEventListener("pointercancel", resetDragState);
 
     return () => {
+      window.removeEventListener("pointermove", handleGlobalPointerMove);
       window.removeEventListener("pointerup", resetDragState);
       window.removeEventListener("pointercancel", resetDragState);
     };
   }, []);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   return (
     <Paper
@@ -123,36 +159,39 @@ export function ManualCodeList() {
             sx={{
               display: "grid",
               gridTemplateColumns: "repeat(5, 1fr)",
-              // ← gap horizontal entre colonnes pour que les entourés ne se touchent pas
               columnGap: "4px",
               rowGap: 0,
               mt: 1,
             }}
           >
             {[1, 2, 3, 4, 5].map((number) => (
-              <Box key={number} sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <Box
+                key={number}
+                sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+              >
                 {allCodes[number].map((code) => {
                   const codeState = getState(code);
-                  if (hide && codeState === "greyed") return null;
+                  if (hide && codeState === "greyed") {
+                    return null;
+                  }
 
                   return (
                     <Box
                       key={code}
                       component="span"
-                      onPointerDown={() => handlePointerDown(code)}
+                      data-code-item="true"
+                      data-code={code}
+                      onPointerDown={(event) => handlePointerDown(code, event)}
                       onPointerEnter={() => handlePointerEnter(code)}
                       onPointerUp={resetDragState}
                       sx={{
                         cursor: "pointer",
                         userSelect: "none",
                         touchAction: "none",
-                        // hauteur fixe + flexbox pour centrer le texte verticalement et horizontalement
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         width: "100%",
-                        // marge verticale de 1px entre chaque code pour éviter
-                        // que les entourés du dessus et du dessous se touchent
                         my: "1px",
                         borderRadius: "3px",
                         color:
@@ -164,9 +203,6 @@ export function ManualCodeList() {
                           codeState === "outlined"
                             ? `1.5px solid ${theme.palette.text.primary}`
                             : "1.5px solid transparent",
-                        // fontSize: "0.82rem",
-                        // fontFamily: "monospace",
-                        // lineHeight: 1.6,
                       }}
                     >
                       {code}
