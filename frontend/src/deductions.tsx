@@ -1,5 +1,5 @@
 import { RootState, store } from "store";
-import { evaluateCheckCard, getCheckCardName } from "checkCardEvaluator";
+import { evaluateCheckCard } from "checkCardEvaluator";
 import { alertActions } from "store/slices/alertSlice";
 import { CommentsState } from "store/slices/commentsSlice";
 
@@ -86,11 +86,10 @@ export async function verifySingleQuery(
   if (checkCardId) {
     const directEvaluation = evaluateCheckCard(checkCardId, code);
     if (directEvaluation !== null) {
-      const checkCardName = getCheckCardName(checkCardId);
       if (directEvaluation) {
         store.dispatch(
           alertActions.openAlert({
-            message: `OK: La lettre ${verifier} accepte le code ${code.join("")} (solved)${checkCardName ? ` via ${checkCardName}` : ""} !`,
+            message: `OK: La lettre ${verifier} accepte le code ${code.join("")} (solved) !`,
             level: "success",
           })
         );
@@ -98,7 +97,7 @@ export async function verifySingleQuery(
       }
       store.dispatch(
         alertActions.openAlert({
-          message: `KO: Le code ${code.join("")} ne passe pas le test ${verifier} (unsolved)${checkCardName ? ` via ${checkCardName}` : ""}.`,
+          message: `KO: Le code ${code.join("")} ne passe pas le test ${verifier} (unsolved).`,
           level: "error",
         })
       );
@@ -373,6 +372,33 @@ export async function getPossibleCodesFromState(state: RootState) {
   });
 
   return { codes: filteredCodes };
+}
+
+export function getFinalCodesFromCheckCards(state: RootState) {
+  const codes: string[] = [];
+  const checkCardIds = state.comments
+    .map(({ criteriaCards }) => criteriaCards[0]?.cryptCard?.id)
+    .filter((id): id is number => typeof id === "number");
+
+  if (checkCardIds.length !== state.comments.length) {
+    return { codes };
+  }
+
+  for (let blue = 1; blue <= 5; blue += 1) {
+    for (let yellow = 1; yellow <= 5; yellow += 1) {
+      for (let purple = 1; purple <= 5; purple += 1) {
+        const code = [blue, yellow, purple];
+        const matchesAllChecks = checkCardIds.every((checkCardId) =>
+          evaluateCheckCard(checkCardId, code) === true
+        );
+        if (matchesAllChecks) {
+          codes.push(`${blue}${yellow}${purple}`);
+        }
+      }
+    }
+  }
+
+  return { codes };
 }
 
 let workId = 0;
