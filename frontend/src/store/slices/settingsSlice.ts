@@ -9,7 +9,7 @@ export type SettingsState = {
 const initialState: SettingsState = {
   paletteMode: "light",
   storeVersion: parseInt(process.env.REACT_APP_STORE_VERSION),
-  language: "EN",
+  language: "FR",
 };
 
 export const settingsSlice = createSlice({
